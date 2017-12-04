@@ -1,6 +1,10 @@
 import sqlite3
 from bottle import route, run, template, debug, template, request, static_file
 
+@route('/<filename:path>')
+def send_static(filename):
+    return static_file(filename, root='static/')
+
 @route('/todo')
 @route('/my_todo_list')
 def todo_list():
