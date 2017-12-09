@@ -5,9 +5,9 @@
 </head> 
 <body><a href="http://localhost:8080/todo">Listi</a>
 
-<a href="http://localhost:8080/new">Breyta</a>
+<a href="http://localhost:8080/new">Nytt</a>
 
-<a href="http://localhost:8080/edit">Nytt</a>
+
 <p>Edit the task with ID = {{no}}</p>
 <form action="/edit/{{no}}" method="get">
   <input type="text" name="task" value="{{old[0]}}" size="100" maxlength="100">

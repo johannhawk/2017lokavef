@@ -5,18 +5,19 @@
 <body>
 <a href="http://localhost:8080/todo">Listi</a>
 
-<a href="http://localhost:8080/new">Breyta</a>
+<a href="http://localhost:8080/new">Nytt</a>
 
-<a href="http://localhost:8080/edit">Nytt</a>
 
-<p>The open items are as follows:</p>
+
+
 <table border="1">
 %for row in rows:
-  <tr>
-  %for col in row:
-    <td>{{col}}</td>
-  %end
-  </tr>
+<tr>
+  <td><a href="/item{{row[0]}}">{{row[1]}}</a></td>
+</tr>
 %end
 </table>
+<form>
+	<input type="button" value="Add New Task" onclick="parent.location='/new'">
+</form>
 </body>

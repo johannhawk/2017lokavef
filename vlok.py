@@ -1,39 +1,86 @@
-import sqlite3
-from bottle import route, run, template, debug, template, request, static_file
+import sqlite3, datetime, sys
+from bottle import route, run, template, debug, template, request, static_file, error, post
 
 @route('/<filename:path>')
 def send_static(filename):
     return static_file(filename, root='static/')
 
+@route('/')
 @route('/todo')
 @route('/my_todo_list')
 def todo_list():
-    conn = sqlite3.connect('todo.db')
-    c = conn.cursor()
-    c.execute("SELECT id, task FROM todo WHERE status LIKE '1'")
-    result = c.fetchall()
-    c.close()
+    #connect to database
+    con = sqlite3.connect('todo.db')
+    cur = con.cursor()
+    #cur.execute("SELECT id, task FROM todo WHERE status LIKE '1'")
+    cur.execute("SELECT id, title FROM todo")
+    result = cur.fetchall()
+    cur.close()
     output = template('make_table', rows=result)
     return output
 
-@route('/new', method='GET')
-def new_item():
-    if request.GET.save:
-        new = request.GET.task.strip()
+#kodi i geymslu ef eitthvað vantar
+'''<ul>
+<table border="1">
+%for row in rows:
+  <tr>
+  %for col in row:
+    <td>{{col}}</td>
+  %end
+  </tr>
+%end
+</ul>
+</table>'''
 
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
+@route('/new', method=['GET','POST'])#bottle todo newtask
+def new_task():
+    if request.POST.get('save','').strip():
+        todotitle = request.POST.get('task')
+        tododesc = request.POST.get('desc')
+        tododatetime = datetime.datetime.now()
 
-        c.execute("INSERT INTO todo (task,status) VALUES (?,?)", (new, 1))
-        new_id = c.lastrowid
+        #connect database
+        con = sqlite3.connect('todo.db', timeout=20)
+        cur = con.cursor()
+        rec = cur.execute('INSERT INTO todo VALUES (null,?,?,?)',(todotitle,tododesc,tododatetime))
+        #cur.execute("INSERT INTO todo (task,status) VALUES (?,?)", (new, 1))
+        con.commit()
+        rows = cur.execute('SELECT * FROM todo ORDER BY datetime ASC')
 
-        conn.commit()
-        c.close()
+        #new_id = cur.lastrowid
+        #cur.close()
 
-        return '<p>The new task was inserted into the database, the ID is %s</p>' % new_id
+        return template('make_table.tpl', rows=rows)
+        #return '<p>The new task was inserted into the database, the ID is %s</p>' % new_id
     else:
         return template('new_task.tpl')
-    
+
+#@route("/item1")
+@route('/item<item:re:[0-9]+>')
+def show_task(item):
+    todoid = item
+    # connect database
+    con = sqlite3.connect('todo.db', timeout=20)
+    cur = con.cursor()
+
+    cur.execute('SELECT * FROM todo WHERE id=?',(todoid))
+    rec = cur.fetchone()
+    todotitle = rec[1]
+    tododesc = rec[2]
+    tododate = convDate = datetime.datetime.strptime(rec[3], "%Y-%m-%d %H:%M:%S.%f").strftime("%A %d %B %Y - %I:%M %p")
+    if not rec:
+        return "Þetta númer er ekki til!"
+        # close database
+        con.close()
+        
+
+    else:
+        output = template('item_task.tpl', todotitle=todotitle, tododesc=tododesc, tododate=tododate)
+        return output
+        # close database
+        con.close()
+        
+
 @route('/edit/<no:int>', method='GET')
 def edit_item(no):
 
@@ -46,20 +93,29 @@ def edit_item(no):
         else:
             status = 0
 
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-        c.execute("UPDATE todo SET task = ?, status = ? WHERE id LIKE ?", (edit, status, no))
-        conn.commit()
+        con = sqlite3.connect('todo.db')
+        cur = con.cursor()
+        cur.execute("UPDATE todo SET task = ?, status = ? WHERE id LIKE ?", (edit, status, no))
+        con.commit()
+        cur.close()
 
         return '<p>The item number %s was successfully updated</p>' % no
     else:
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-        c.execute("SELECT task FROM todo WHERE id LIKE ?", (str(no),))
-        cur_data = c.fetchone()
+        con = sqlite3.connect('todo.db')
+        cur = con.cursor()
+        cur.execute("SELECT task FROM todo WHERE id LIKE ?", (str(no),))
+        cur_data = cur.fetchone()
 
         return template('edit_task', old=cur_data, no=no)
 
+@error(403)
+def mistake403(code):
+    return 'Error 403: Það er mistök í þínu url!'
+
+
+#@error(404)
+#def mistake404(code):
+#    return 'Error404: Þessi síða er ekki til!'
 
 debug(True)
 run(host='localhost', port=8080, reloader=True)
