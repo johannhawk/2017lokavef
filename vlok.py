@@ -143,7 +143,7 @@ def mistake403(code):
 #    return 'Error404: Þessi síða er ekki til!'
 
 debug(True)
-run(app = app,host='0.0.0.0', port=argv[1], debug=True)
+run(host='0.0.0.0', port=argv[1], debug=True)
 #run(host='localhost', port=8080, reloader=True)
 
 
