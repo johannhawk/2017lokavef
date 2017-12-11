@@ -1,7 +1,8 @@
 import sqlite3, datetime, sys
 from bottle import route, run, template, debug, template, request, static_file, error, post, get
 
-
+from beaker.middleware import SessionMiddleware
+from sys import argv
 
 @route('/<filename:path>')
 def send_static(filename):
