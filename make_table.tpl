@@ -7,9 +7,6 @@
 
 <a href="http://localhost:8080/new">Nytt</a>
 
-
-
-
 <table border="1">
 %for row in rows:
 <tr>
