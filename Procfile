@@ -1,1 +1,1 @@
-web: python ./app.py $PORT
+web: python ./vlok.py $PORT
